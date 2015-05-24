@@ -5,7 +5,7 @@
 ## 安装方法
 
 ```sh
-https://github.com/jiangege/TerrorGame.git
+git https://github.com/jiangege/TerrorGame.git
 cd TerrorGame
 npm install 
 npm start
