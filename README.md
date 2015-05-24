@@ -10,4 +10,4 @@ cd TerrorGame
 npm install 
 npm start
 ```
-启动浏览器运行编辑器:<https://localhost>
+启动浏览器:<https://localhost>
