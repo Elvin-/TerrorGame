@@ -1,0 +1,25 @@
+{
+
+  "name": "TerrorGame",
+  "version": "0.0.1",
+  "author" : "jiagege",
+  "description" : "恐怖游戏编辑器",
+  "keywords" : "javascript, nodejs",
+  "respository" : {
+    "type" :"git",
+    "url" :"https://github.com/jiangege/TerrorGame"
+  },
+
+  "bugs" : {
+    "url" : "https://github.com/jiangege/TerrorGame/issues",
+    "email" : "jiangege47@gmail.com"
+  },
+  "license" : "MIT",
+  "private": true,
+  "scripts": {
+      "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "~4.12.3"
+  }
+}

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+	     <meta charset="utf-8">
+         <style type="text/css">
+              body{
+                 font-family:"微软雅黑";
+              }
+             .editor{
+                 width:800px;
+                 height:600px;
+                 display:none;
+                 font-size:18px!important;
+             }
+         </style>
+	</head>
+	<body>    
+            <br/>
+            <div>例子: </div>
+            <div>§0<font color='black'>黑色</font>&nbsp;
+            §1<font color='darkblue'>深蓝色</font>&nbsp;
+            §2<font color='darkgreen'>深绿色</font>&nbsp;
+            §3<font color='azure'>天蓝色</font>&nbsp;
+            §4<font color='red'>红色</font>&nbsp;
+            §5<font color='darkviolet'>深紫</font>&nbsp;
+            §6<font color='gold'>金黄</font>&nbsp;
+            §7<font color='lightgray'>浅灰</font>&nbsp;
+            §8<font color='darkgray'>深灰</font>&nbsp;
+            §9<font color='lavender'>淡紫</font>&nbsp;
+            §a<font color='aqua'>浅绿</font>&nbsp;
+            §f<font color='white'>白色</font>&nbsp;
+            §l<b>加粗</b>&nbsp;
+            §m<i>斜体</i>&nbsp;
+            §n<u>下划线</u>&nbsp;
+            §o<strike>删除线</strike>&nbsp;
+            §r&nbsp;清除样式&nbsp;
+            </div>
+            <br/>
+            <button id="add-btn">添加一条</button>
+            <ul id="gamelist"></ul>
+
+             <script src="js/jquery-1.11.2.min.js"></script>
+
+            <script src="js/av.min.js"></script>
+            <script>
+                    AV.initialize("xkcs46gxa50edxpffn0pqzgbh3o559hse085kd7g9rxlvjat", "7asbgx5rpgarg153pcu5kj331k6atqix4mk3m0sfae87ymvk");
+            </script>
+            <script src="js/localforage.js"></script>
+            <script src="js/ace.js"></script>
+            <script>
+                    
+                  
+
+                   var TerrorGameList = AV.Object.extend("TerrorGameList");
+
+                     var currentEditID=null;
+                    
+                    var localGameList=[];
+ 
+
+                    localforage.getItem("localGameList",function(err,_localGameList){
+                         if(err){
+                            alert('无法获取');
+                            return;
+                         }
+                         _localGameList=_localGameList||[];
+
+                         localGameList=localGameList.concat(_localGameList);
+                         fillHTML();
+                    });
+                  
+
+                    $("#add-btn").on('click',function(){
+                          var name=prompt("输入名字")
+                          name&&addNew(name);
+                    });
+
+
+                    $("#gamelist").on('click','.remove',function(){
+                          removeItem($(this).parent().attr('id'));
+                    });
+                    
+                   $("#gamelist").on('click','.edit',function(){
+                          var id;
+                          editData($(this),id=$(this).parent().attr('id'),getDataById(id));
+                    });
+
+                   $("#gamelist").on('click','.publish',function(){
+                          publish($(this).parent().attr('id'));
+                    });
+                   
+
+
+                    function editData($ele,id,data){
+                        var status=$ele.data('status');
+                        var editor=$ele.data('editor');
+                        if(!editor){
+                           editor=ace.edit("editor"+id);
+                           editor.setTheme("ace/theme/monokai");
+                           var session=editor.getSession()
+                           session.setMode("ace/mode/json");
+                           session.setUseWrapMode(true);
+                           $ele.data('editor',editor);
+
+                           editor.getSession().on('change', function(e) {
+                                saveDataToLocal(id,editor.getValue());
+                           });
+                        }
+                       
+                        
+                        if(!status){
+                            editor.setValue(data); 
+                            $ele.data('status',1).text("取消");
+                            $("#editor"+id).show();
+                        }else{
+                            $ele.data('status',0).text("编辑");
+                            $("#editor"+id).hide();
+                        }
+                    }
+
+
+                    function saveDataToLocal(lid,data){
+
+
+                        for(var i=0;i<localGameList.length;i++){
+                              if(localGameList[i].lid==lid){
+                                  localGameList[i].data=data;
+                              }
+                        }
+                       localforage.setItem("localGameList",localGameList);
+                    }
+                    
+                    function publish(lid){
+                         for(var i=0;i<localGameList.length;i++){
+                             var data=localGameList[i];
+                              if(data.lid==lid){
+                                   if(!data.id){
+                                         (new TerrorGameList()).save({
+                                            name:data.name,
+                                            data:data.data 
+                                         },{
+                                            success:function(terrorGame){
+                                                 data.id=terrorGame.id;
+                                                 localforage.setItem("localGameList",localGameList);
+                                                 fillHTML();
+                                                 alert('发布成功');
+                                            },
+                                            error:function(object, error){
+                                                alert(error.message);
+                                            }
+                                         });
+                                   }else{
+                                       var query = new AV.Query(TerrorGameList);
+                                        query.get(data.id, {
+                                          success: function(terrorGame) {
+                                                 terrorGame.save({
+                                                    name:data.name,
+                                                    data:data.data 
+                                                 },{
+                                                    success:function(terrorGame){
+                                                         alert('发布成功');
+                                                    },
+                                                    error:function(object, error){
+                                                        alert(error.message);
+                                                    }
+                                                 });
+                                          },
+                                          error: function(object, error) {
+                                              alert(error.message);
+                                            
+                                          }
+                                        });
+                                   }
+                                   
+                                   return;
+                              }
+                        }
+                        
+                    }
+                    
+                    function getDataById(lid){
+                         for(var i=0;i<localGameList.length;i++){
+                              if(localGameList[i].lid==lid){
+                                  return localGameList[i].data;
+                              }
+                        }
+                        return "";
+                    }
+
+                  
+
+                    function addNew(name){
+                         var obj={
+                            name:name,
+                            lid:guid()
+                         };
+                         
+
+                         localGameList.push(obj);
+                         
+
+                         localforage.setItem("localGameList",localGameList);
+                         fillHTML();
+
+                         
+                    }
+
+                    function removeItem(lid){
+                        for(var i=0;i<localGameList.length;i++){
+                              if(localGameList[i].lid==lid){
+                                 if(localGameList[i].id){
+                                      var query = new AV.Query(TerrorGameList);
+
+                                      (function(i){
+                                         query.get(localGameList[i].id,{
+                                            success: function(terrorGame) {
+                                              terrorGame.destroy({
+                                                  success: function(myObject) {
+                                                      alert('删除成功');
+                                                      localGameList.splice(i,1);
+                                                      localforage.setItem("localGameList",localGameList);
+                                                      fillHTML();
+                                                  },
+                                                  error: function(myObject, error) {
+                                                      alert(error.message);
+                                                  }
+                                              });
+                                           },
+                                           error: function(object, error) {
+                                              alert(error.message);
+                                            
+                                           }
+                                        });
+                                      })(i);
+                                 }else{
+                                     localGameList.splice(i,1);
+                                     localforage.setItem("localGameList",localGameList);
+                                     fillHTML();
+                                  
+                                 }
+                                 return;
+                              }
+                        }
+                      
+                    }
+
+
+                    function fillHTML(){
+                        var htmlAry=[];
+                        for(var i=0;i<localGameList.length;i++){
+                              var data=localGameList[i];
+                              htmlAry.push('<li id="'+data.lid+'">'+data.name+'<button class="remove">删除</button><button class="edit">编辑</button><button class="publish">发布</button>'+(data.id?'<a target="_blank" href="/play.html?id='+data.id+'">跳转</a>':"")+'<br/><div id="editor'+data.lid+'" class="editor"></div></li>')
+                        }
+                        $("#gamelist").html(htmlAry.join(''));
+                    }
+
+
+                    function guid() {
+                        var S4 = function() {
+                           return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+                        };
+                        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+                    }
+            </script>
+	</body>
+
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+	     <meta charset="utf-8">
+       <link rel="stylesheet" type="text/css" href="css/terror_game.css">
+	</head>
+	<body onselectstart="return false;"> 
+                          <div id="test" class="terror-game">
+                          	     
+                          </div>
+                          <script src="js/jquery-1.11.2.min.js"></script>
+
+                        <script src="js/av.min.js"></script>
+                        <script>
+                                AV.initialize("xkcs46gxa50edxpffn0pqzgbh3o559hse085kd7g9rxlvjat", "7asbgx5rpgarg153pcu5kj331k6atqix4mk3m0sfae87ymvk");
+                        </script>
+                        <script type="text/javascript" src="js/terror_game.js"></script>
+
+                        <script type="text/javascript">
+
+
+                                 var tg=new TerrorGame($("#test"));
+                                 
+                                 var TerrorGameList = AV.Object.extend("TerrorGameList");
+
+                                 var query = new AV.Query(TerrorGameList);
+
+                                 var id=getQueryStringByName("id");
+
+                                 if(id){
+                                     query.get(id,{
+                                        success: function(terrorData) {
+                                          try{
+                                              document.title=terrorData.get('name');
+                                              tg.start(JSON.parse(terrorData.get("data")));
+                                          }catch(e){
+                                            alert('解析失败');
+                                          }
+                                          // The object was retrieved successfully.
+                                        },
+                                        error: function(object, error) {
+                                          alert(error.message);
+                                          // The object was not retrieved successfully.
+                                          // error is a AV.Error with an error code and description.
+                                        }
+                                     });  
+                                 }else{
+                                    alert('无法获取该资源');
+                                 }
+                                  
+
+                               function getQueryStringByName(name) {
+                                  var result = location.search.match(new RegExp("[\?\&]" + name + "=([^\&]+)", "i"));
+                                  if (result == null || result.length < 1) {
+                                      return "";
+                                  }
+                                  return result[1];
+                              }
+                        </script>
+
+	</body>
+
+</html>
